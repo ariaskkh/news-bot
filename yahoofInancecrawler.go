@@ -17,14 +17,14 @@ type NewsItem struct {
 type YahooFinanceCrawler struct {
 	log      func(string)
 	keywords []NewsKeyword
-	messages chan<- string
+	message chan<- string
 }
 
-func CreateYahooFinanceCrawler(log func(string), messages chan<- string) *YahooFinanceCrawler {
+func CreateYahooFinanceCrawler(log func(string), message chan<- string) *YahooFinanceCrawler {
 	return &YahooFinanceCrawler{
 		log:      log,
 		keywords: []NewsKeyword{},
-		messages: messages,
+		message: message,
 	}
 }
 
@@ -47,7 +47,7 @@ func (c *YahooFinanceCrawler) CrawlYahooNews() {
 	for _, item := range newsItems {
 		message := fmt.Sprintf("%s\n\n%s\n", item.Title, item.URL) // message form
 		c.log(message)
-		go func() { c.messages <- message}()
+		go func() { c.message <- message}()
 	}
 }
 

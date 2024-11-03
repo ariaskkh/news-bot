@@ -25,15 +25,15 @@ func main() {
 		logger.Fatal("Failed to create TeleBot instance")
 	}
 
-	messages := make(chan string)
+	message := make(chan string)
 	go func() {
-		for msg := range messages {
+		for msg := range message {
 			teleBot.SendMessage(msg)
 		}
 	}()
 
 	// Initialize the craler
-	crawler := CreateYahooFinanceCrawler(logWrapper, messages)
+	crawler := CreateYahooFinanceCrawler(logWrapper, message)
 	if crawler == nil {
 		logger.Fatal("Failed to create crawler instance")
 	}
