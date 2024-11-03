@@ -10,6 +10,8 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+const repeatTimesOfScroll = 5
+
 type NewsItem struct {
 	Title string
 	URL   string
@@ -41,12 +43,32 @@ func (c *YahooFinanceCrawler) CrawlYahooNews() {
 	// Open Yahoo Finance news page
 	var newsItems []NewsItem
 	err := chromedp.Run(ctx,
-		chromedp.Navigate("https://finance.yahoo.com/news/"),
-		chromedp.Sleep(2*time.Second), // Give some time for Lazy Loading
+		chromedp.Navigate("https://finance.yahoo.com/news/"),		
+	)
+	if err != nil {
+		log.Fatal("Crawling error(navigate to yahoo): ", err)
+	}
+
+	// Scroll the page multiple times to load more content
+	for i := 0; i < repeatTimesOfScroll; i++ {
+		err = chromedp.Run(ctx,
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				// Scroll to the bottom of the page
+				return chromedp.Evaluate(`window.scrollTo(0, document.body.scrollHeight)`, nil).Do(ctx)
+			}),
+			chromedp.Sleep(2*time.Second), // Give some time for Lazy Loading
+		)
+	}
+	if err != nil {
+		log.Fatal("Crawling error(scrolling): ", err)
+	}
+
+
+	err = chromedp.Run(ctx,
 		chromedp.Evaluate(`Array.from(document.querySelectorAll("a[href*='/news/'] h3")).map(item => ({ title: item.innerText, url: item.closest('a').href}))`, &newsItems),
 	)
 	if err != nil {
-		log.Fatal("Crawling error: ", err)
+		log.Fatal("Crawling error(crawling, parsing): ", err)
 	}
 
 	for _, item := range newsItems {
@@ -69,19 +91,14 @@ func (c *YahooFinanceCrawler) CrawlYahooNews() {
 }
 
 func (c *YahooFinanceCrawler) ContainKeyword(item NewsItem) bool {
-	log.Println(1)
 	if c.keywords == nil {
 		log.Println("등록된 키워드가 없습니다.")
 		return false
 	}
-	log.Println(2)
 	for _, keyword := range *c.keywords {
-		log.Println(3)
 		if strings.Contains(strings.ToLower(item.Title), strings.ToLower(keyword.Text)) {
-			log.Println(4)
 			return true
 		}
 	}
-	log.Println(5)
 	return false
 }
