@@ -17,7 +17,7 @@ func main() {
 
 	logWrapper := logWrapper(logger)
 	// Initialize the bot
-	telegramBotToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+	telegramBotToken := GetTeleBotToken()
 	chatID := GetChatID()
 	teleBot := CreateTeleBot(telegramBotToken, chatID, logWrapper)
 	if teleBot == nil {
@@ -40,10 +40,19 @@ func main() {
 	select {}
 }
 
+// 다양한 로그 원하는 경우 클래스로 만들기
 func logWrapper(logger *log.Logger) func(string) {
 	return func(message string) {
 		logger.Println(message)
 	}
+}
+
+func GetTeleBotToken() string {
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	if token == "" {
+		log.Fatal("TELEGRAM_BOT_TOKEN environment variable is not set")
+	}
+	return token;
 }
 
 func GetChatID() int64 {
