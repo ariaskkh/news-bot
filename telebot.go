@@ -47,17 +47,22 @@ func (t *TeleBot) Start() {
 		if update.Message != nil && update.Message.IsCommand() {
 			switch update.Message.Command() {
 			case "keywords":
-				t.SendKeywords(update.Message.Chat.ID)
+				t.SendKeywords()
 			}
 		}
 	}
 }
 
-func (t *TeleBot) SendKeywords(chatID int64) {
+func (t *TeleBot) SendMessage(message string) {
+	msg := tgbotapi.NewMessage(t.chatID, message)
+	t.bot.Send(msg)
+}
+
+func (t *TeleBot) SendKeywords() {
 	var keywordTexts []string
 	for _, keyword := range t.keywords {
 		keywordTexts = append(keywordTexts, "'"+keyword.Text+"'")
 	}
-	msg := tgbotapi.NewMessage(chatID, "등록된 keyword: ["+strings.Join(keywordTexts, ", ")+"]")
-	t.bot.Send(msg)
+	msgStr := "등록된 keyword: ["+strings.Join(keywordTexts, ", ")+"]"
+	t.SendMessage(msgStr)
 }
