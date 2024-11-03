@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -24,8 +25,15 @@ func main() {
 		logger.Fatal("Failed to create TeleBot instance")
 	}
 
+	messages := make(chan string)
+	go func() {
+		for msg := range messages {
+			teleBot.SendMessage(msg)
+		}
+	}()
+
 	// Initialize the craler
-	crawler := CreateYahooFinanceCrawler(logWrapper)
+	crawler := CreateYahooFinanceCrawler(logWrapper, messages)
 	if crawler == nil {
 		logger.Fatal("Failed to create crawler instance")
 	}
@@ -34,10 +42,14 @@ func main() {
 	crawler.AddKeyword("Korea")
 	crawler.AddKeyword("Trump")
 	crawler.AddKeyword("Dean")
-	// crawler.CrawlYahooNews()
 
 	teleBot.SetKeywords(crawler.keywords)
-	teleBot.Start()
+	
+	go teleBot.Start()
+	go func() {
+		crawler.CrawlYahooNews()
+		time.Sleep(5 * time.Second)
+	}()
 
 	// Keep the main function running
 	select {}

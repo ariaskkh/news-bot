@@ -17,18 +17,21 @@ type NewsItem struct {
 type YahooFinanceCrawler struct {
 	log      func(string)
 	keywords []NewsKeyword
+	messages chan<- string
 }
 
-func CreateYahooFinanceCrawler(log func(string)) *YahooFinanceCrawler {
+func CreateYahooFinanceCrawler(log func(string), messages chan<- string) *YahooFinanceCrawler {
 	return &YahooFinanceCrawler{
 		log:      log,
 		keywords: []NewsKeyword{},
+		messages: messages,
 	}
 }
 
 func (c *YahooFinanceCrawler) CrawlYahooNews() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
+
 
 	// Open Yahoo Finance news page
 	var newsItems []NewsItem
@@ -42,7 +45,9 @@ func (c *YahooFinanceCrawler) CrawlYahooNews() {
 	}
 
 	for _, item := range newsItems {
-		c.log(fmt.Sprintf("Title: %s\nURL: %s\n", item.Title, item.URL))
+		message := fmt.Sprintf("%s\n\n%s\n", item.Title, item.URL) // message form
+		c.log(message)
+		go func() { c.messages <- message}()
 	}
 }
 
