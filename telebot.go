@@ -43,8 +43,12 @@ func (t *TeleBot) Start() {
 			Description: "List all keywords",
 		},
 		tgbotapi.BotCommand{
-			Command: "addKeyword",
+			Command: "add",
 			Description: "Add a new keyword",
+		},
+		tgbotapi.BotCommand{
+			Command: "remove",
+			Description: "Remove a new keyword",
 		},
 	)
 
@@ -76,9 +80,9 @@ func (t *TeleBot) HandleCommands(updates tgbotapi.UpdatesChannel) {
 		switch update.Message.Command() {
 		case "keywords":
 			t.GetKeywords()
-		case "addKeyword":
+		case "add":
 			t.AddKeyword(update.Message.CommandArguments())
-		case "removeKeyword":
+		case "remove":
 			t.RemoveKeyword(update.Message.CommandArguments())
 		default:
 			t.SendMessage("등록되지 않은 커맨드입니다.")
