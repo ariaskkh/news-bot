@@ -47,8 +47,11 @@ func main() {
 	
 	go teleBot.Start()
 	go func() {
-		crawler.CrawlYahooNews()
-		time.Sleep(5 * time.Second)
+		for {
+			log.Println("crawling 시작")
+			crawler.CrawlYahooNews()
+			time.Sleep(3 * time.Second)
+		}
 	}()
 
 	// Keep the main function running

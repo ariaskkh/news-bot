@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -29,6 +30,10 @@ func CreateYahooFinanceCrawler(log func(string), message chan<- string, keywords
 }
 
 func (c *YahooFinanceCrawler) CrawlYahooNews() {
+	if c.keywords == nil {
+		log.Println("등록된 키워드가 없습니다.")
+		return
+	}
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
@@ -45,8 +50,38 @@ func (c *YahooFinanceCrawler) CrawlYahooNews() {
 	}
 
 	for _, item := range newsItems {
-		message := fmt.Sprintf("%s\n\n%s\n", item.Title, item.URL) // message form
-		c.log(message)
-		go func() { c.message <- message}()
+		if c.ContainKeyword(item) {
+			message := fmt.Sprintf("%s\n\n%s\n", item.Title, item.URL) // message form
+			c.log(message)
+			go func() { c.message <- message}()
+		} else {
+			continue
+		}
 	}
+
+	// // test
+	// item := newsItems[0]
+	// if c.ContainKeyword(item) {
+	// 	message := fmt.Sprintf("%s\n\n%s\n", item.Title, item.URL) // message form
+	// 	c.log(message)
+	// 	go func() { c.message <- message}()
+	// }
+}
+
+func (c *YahooFinanceCrawler) ContainKeyword(item NewsItem) bool {
+	log.Println(1)
+	if c.keywords == nil {
+		log.Println("등록된 키워드가 없습니다.")
+		return false
+	}
+	log.Println(2)
+	for _, keyword := range *c.keywords {
+		log.Println(3)
+		if strings.Contains(strings.ToLower(item.Title), strings.ToLower(keyword.Text)) {
+			log.Println(4)
+			return true
+		}
+	}
+	log.Println(5)
+	return false
 }
