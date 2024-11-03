@@ -31,19 +31,19 @@ func main() {
 			teleBot.SendMessage(msg)
 		}
 	}()
-
 	// Initialize the craler
-	crawler := CreateYahooFinanceCrawler(logWrapper, message)
+	crawler := CreateYahooFinanceCrawler(logWrapper, message, &teleBot.keywords)
 	if crawler == nil {
 		logger.Fatal("Failed to create crawler instance")
 	}
 
 	// Example usage
-	crawler.AddKeyword("Korea")
-	crawler.AddKeyword("Trump")
-	crawler.AddKeyword("Dean")
+	// crawler.AddKeyword("Korea")
+	// crawler.AddKeyword("Trump")
+	// crawler.AddKeyword("Dean")
 
-	teleBot.SetKeywords(crawler.keywords)
+	// TODO: 저장되어 있는 keywords set
+	// teleBot.SetKeywords()
 	
 	go teleBot.Start()
 	go func() {

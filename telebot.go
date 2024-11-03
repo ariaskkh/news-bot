@@ -36,21 +36,27 @@ func (t *TeleBot) SetKeywords(keywords []NewsKeyword) {
 }
 
 func (t *TeleBot) Start() {
+	// 동작 안하는 듯..?
+	cmdConfig := tgbotapi.NewSetMyCommands(
+		tgbotapi.BotCommand{
+			Command: "keywords",
+			Description: "List all keywords",
+		},
+		tgbotapi.BotCommand{
+			Command: "addKeyword",
+			Description: "Add a new keyword",
+		},
+	)
+
+	t.bot.Send(cmdConfig)
+	// t.bot.Request(cmdConfig)
+	
+	
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-
 	updates := t.bot.GetUpdatesChan(u)
 	t.log("Bot started successfully")
-
-	for update := range updates {
-		t.log(update.Message.Command())
-		if update.Message != nil && update.Message.IsCommand() {
-			switch update.Message.Command() {
-			case "keywords":
-				t.SendKeywords()
-			}
-		}
-	}
+	t.HandleCommands(updates)
 }
 
 func (t *TeleBot) SendMessage(message string) {
@@ -58,11 +64,62 @@ func (t *TeleBot) SendMessage(message string) {
 	t.bot.Send(msg)
 }
 
-func (t *TeleBot) SendKeywords() {
+func (t *TeleBot) HandleCommands(updates tgbotapi.UpdatesChannel) {
+	for update := range updates {
+		if update.Message == nil {
+			continue
+		}
+		if !update.Message.IsCommand() {
+			continue
+		}
+
+		switch update.Message.Command() {
+		case "keywords":
+			t.GetKeywords()
+		case "addKeyword":
+			t.AddKeyword(update.Message.CommandArguments())
+		case "removeKeyword":
+			t.RemoveKeyword(update.Message.CommandArguments())
+		default:
+			t.SendMessage("등록되지 않은 커맨드입니다.")
+		}
+	}
+}
+
+func (t *TeleBot) GetKeywords() {
 	var keywordTexts []string
 	for _, keyword := range t.keywords {
 		keywordTexts = append(keywordTexts, "'"+keyword.Text+"'")
 	}
 	msgStr := "등록된 keyword: ["+strings.Join(keywordTexts, ", ")+"]"
 	t.SendMessage(msgStr)
+}
+
+func (t *TeleBot) AddKeyword(keyword string) {
+	if keyword == "" {
+		t.SendMessage("키워드를 입력해주세요")
+		return
+	}
+	for _, k := range t.keywords {
+		if k.Text == keyword {
+			t.SendMessage("이미 등록된 키워드입니다")
+			return
+		}
+	}
+	t.keywords = append(t.keywords, NewsKeyword{Text: keyword})
+	t.SendMessage("키워드가 등록되었습니다")
+}
+
+func (t *TeleBot) RemoveKeyword(keyword string) {
+	if keyword == "" {
+		t.SendMessage("키워드를 입력해주세요")
+		return
+	}
+	for _, k := range t.keywords {
+		if k.Text == keyword {
+			
+			t.SendMessage("키워드가 제거되었습니다.")
+			return
+		}
+	}
 }
