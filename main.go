@@ -26,6 +26,9 @@ func main() {
 
 	// Initialize the craler
 	crawler := CreateYahooFinanceCrawler(logWrapper)
+	if crawler == nil {
+		logger.Fatal("Failed to create crawler instance")
+	}
 
 	// Example usage
 	crawler.AddKeyword("Korea")

@@ -39,21 +39,18 @@ func (t *TeleBot) Start() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	// updates := t.bot.GetUpdatesChan(u)
+	updates := t.bot.GetUpdatesChan(u)
 	t.log("Bot started successfully")
 
-	// msg := tgbotapi.NewMessage(t.chatID, "hihi")
-	// t.bot.Send(msg)
-
-	// for update := range updates {
-	// 	t.log(update.Message.Command())
-	// 	if update.Message != nil && update.Message.IsCommand() {
-	// 		switch update.Message.Command() {
-	// 		case "Keywords":
-	// 			t.SendKeywords(update.Message.Chat.ID)
-	// 		}
-	// 	}
-	// }
+	for update := range updates {
+		t.log(update.Message.Command())
+		if update.Message != nil && update.Message.IsCommand() {
+			switch update.Message.Command() {
+			case "keywords":
+				t.SendKeywords(update.Message.Chat.ID)
+			}
+		}
+	}
 }
 
 func (t *TeleBot) SendKeywords(chatID int64) {
